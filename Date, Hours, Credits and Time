@@ -1,0 +1,178 @@
+Qualtrics.SurveyEngine.addOnload(function() {
+    // Add CSS for alignment
+    var css = `
+        <style>
+            .aligned-input {
+                display: inline-block;
+                width: 150px; /* Set a fixed width for uniformity */
+                margin-right: 10px; /* Space between boxes */
+            }
+            .input-label {
+                display: inline-block;
+                width: 100px; /* Align labels with inputs */
+            }
+        </style>
+    `;
+    jQuery('head').append(css);
+
+    // Date selection prompt
+    var promptHTML = '<p>Enter the dates for your research experience. The dates must be between 1/21/25 and 5/9/25.</p>';
+    var startDateHTML = '<label class="input-label" for="startDate">Start Date:</label><input class="aligned-input" type="date" id="startDate" name="startDate" required>';
+    var endDateHTML = '<label class="input-label" for="endDate">End Date:</label><input class="aligned-input" type="date" id="endDate" name="endDate" required>';
+    var weeksDisplayHTML = '<div id="weeksDisplay">Number of weeks: <span id="weeksCount">0</span></div>';
+
+    // Add date HTML to the question text
+    jQuery('#'+this.getQuestionInfo().QuestionID).html(promptHTML + startDateHTML + '<br>' + endDateHTML + '<br>' + weeksDisplayHTML);
+
+    // Set the minimum and maximum allowed dates
+    var minDate = new Date('2025-01-21');
+    var maxDate = new Date('2025-05-09');
+
+    // Initialize the date picker for the start date
+    jQuery("#startDate").attr("min", minDate.toISOString().split('T')[0]);
+    jQuery("#startDate").attr("max", maxDate.toISOString().split('T')[0]);
+
+    // Initialize the date picker for the end date
+    jQuery("#endDate").attr("min", minDate.toISOString().split('T')[0]);
+    jQuery("#endDate").attr("max", maxDate.toISOString().split('T')[0]);
+
+    // Function to calculate the number of weeks between two dates
+    function calculateWeeks(start, end) {
+        var oneWeek = 1000 * 60 * 60 * 24 * 7; // One week in milliseconds
+        var diff = end - start;
+        return Math.round((diff / oneWeek) * 2) / 2; // Round to nearest half week
+    }
+
+    // Update the weeks display based on selected dates
+    function updateWeeksDisplay() {
+        var startDateValue = jQuery('#startDate').val();
+        var endDateValue = jQuery('#endDate').val();
+
+        if (startDateValue && endDateValue) {
+            var startDate = new Date(startDateValue);
+            var endDate = new Date(endDateValue);
+
+            // Check if the dates are within the allowed range
+            if (startDate < minDate || startDate > maxDate) {
+                alert('Start Date must be between ' + minDate.toISOString().split('T')[0] + ' and ' + maxDate.toISOString().split('T')[0]);
+                jQuery('#startDate').val(''); // Clear the start date field
+                return;
+            }
+
+            if (endDate < minDate || endDate > maxDate) {
+                alert('End Date must be between ' + minDate.toISOString().split('T')[0] + ' and ' + maxDate.toISOString().split('T')[0]);
+                jQuery('#endDate').val(''); // Clear the end date field
+                return;
+            }
+
+            if (startDate > endDate) {
+                alert('End Date cannot be before Start Date.');
+                jQuery('#endDate').val(''); // Clear the end date field
+            } else {
+                var weeks = calculateWeeks(startDate, endDate);
+                jQuery('#weeksCount').text(weeks);
+
+                // Set the embedded data fields
+                Qualtrics.SurveyEngine.setEmbeddedData('weeks', weeks);
+                Qualtrics.SurveyEngine.setEmbeddedData('1StartDate', startDateValue);
+                Qualtrics.SurveyEngine.setEmbeddedData('2EndDate', endDateValue);
+            }
+        }
+    }
+
+    // Set up event listeners to update the weeks display when dates change
+    jQuery('#startDate, #endDate').on('change', updateWeeksDisplay);
+
+    // Hours input prompt
+    var hoursPromptHTML = '<p>Enter the number of hours you plan to conduct research each day:</p>';
+    var daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    var hoursHTML = '';
+    for (var i = 0; i < daysOfWeek.length; i++) {
+        hoursHTML += '<label class="input-label" for="' + daysOfWeek[i] + '">' + daysOfWeek[i] + ':</label>';
+        hoursHTML += '<input class="aligned-input" type="number" id="' + daysOfWeek[i] + '" name="' + daysOfWeek[i] + 'Hours" min="0" max="24" step="0.5" required><br>';
+    }
+    var totalHoursHTML = '<div id="totalHoursDisplay">Total research hours per week: <span id="totalHours">0</span></div>';
+    var totalSemesterHoursHTML = '<div id="totalSemesterHoursDisplay">Total research hours per semester: <span id="totalSemesterHours">0</span></div>';
+
+    // Add hours HTML to the question text
+    jQuery('#'+this.getQuestionInfo().QuestionID).append(hoursPromptHTML + hoursHTML + '<br>' + totalHoursHTML + '<br>' + totalSemesterHoursHTML);
+
+    // Calculate total hours function
+    function calculateTotalHours() {
+        var totalHours = 0;
+        for (var i = 0; i < daysOfWeek.length; i++) {
+            var hours = parseFloat(jQuery('#' + daysOfWeek[i]).val()) || 0;
+            totalHours += hours;
+        }
+        return totalHours;
+    }
+// Hours input prompt
+var hoursPromptHTML = '<p>Enter the number of hours you plan to conduct research each day:</p>';
+var daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+var hoursHTML = '';
+for (var i = 0; i < daysOfWeek.length; i++) {
+    hoursHTML += '<label class="input-label" for="' + daysOfWeek[i] + '">' + daysOfWeek[i] + ':</label>';
+    hoursHTML += '<input class="aligned-input" type="number" id="' + daysOfWeek[i] + '" name="' + daysOfWeek[i] + 'Hours" min="0" max="24" step="0.5" required><br>';
+}
+var totalHoursHTML = '<div id="totalHoursDisplay">Total research hours per week: <span id="totalHours">0</span></div>';
+var totalSemesterHoursHTML = '<div id="totalSemesterHoursDisplay">Total research hours per semester: <span id="totalSemesterHours">0</span></div>';
+
+// Add hours HTML to the question text
+jQuery('#'+this.getQuestionInfo().QuestionID).append(hoursPromptHTML + hoursHTML + '<br>' + totalHoursHTML + '<br>' + totalSemesterHoursHTML);
+
+// Time input prompt
+var timePromptHTML = '<p>Enter the exact time you will work each day of the week:</p>';
+var timeHTML = '';
+for (var i = 0; i < daysOfWeek.length; i++) {
+    timeHTML += '<label class="input-label" for="' + daysOfWeek[i] + 'Start">' + daysOfWeek[i] + ' Start Time:</label>';
+    timeHTML += '<input class="aligned-input" type="time" id="' + daysOfWeek[i] + 'Start" name="' + daysOfWeek[i] + 'StartTime" required>';
+    timeHTML += '<label class="input-label" for="' + daysOfWeek[i] + 'End">' + daysOfWeek[i] + ' End Time:</label>';
+    timeHTML += '<input class="aligned-input" type="time" id="' + daysOfWeek[i] + 'End" name="' + daysOfWeek[i] + 'EndTime" required><br>';
+}
+
+// Add time HTML to the question text
+jQuery('#'+this.getQuestionInfo().QuestionID).append(timePromptHTML + timeHTML);
+
+    // Update hours display
+    function updateHoursDisplay() {
+        var totalHours = calculateTotalHours();
+        jQuery('#totalHours').text(totalHours);
+        var weeks = parseFloat(Qualtrics.SurveyEngine.getEmbeddedData('weeks')) || 0;
+        var totalSemesterHours = totalHours * weeks;
+        jQuery('#totalSemesterHours').text(totalSemesterHours);
+        Qualtrics.SurveyEngine.setEmbeddedData('totalSemesterHours', totalSemesterHours);
+        updateCreditOptions(totalSemesterHours); // Update credit options based on total hours
+    }
+
+    // Set up event listeners for hours input changes
+    jQuery('input[type="number"]').on('input', updateHoursDisplay);
+
+    // Credit selection prompt
+    var creditHTML = '<label for="credits">Select the number of credits:</label>';
+    creditHTML += '<select id="credits" name="credits" required>';
+    creditHTML += '<option value="">--Select--</option>';
+    creditHTML += '<option value="volunteer">Volunteer</option>'; // Always available option
+    creditHTML += '</select>';
+    var creditInfoHTML = '<div id="creditInfo"></div>';
+
+    // Add credit HTML to the question text
+    jQuery('#'+this.getQuestionInfo().QuestionID).append(creditHTML + '<br>' + creditInfoHTML);
+
+    // Update credit options based on total research hours
+    function updateCreditOptions(totalSemesterHours) {
+        var selectElement = jQuery('#credits');
+        selectElement.empty();
+        selectElement.append('<option value="">--Select--</option>');
+        selectElement.append('<option value="volunteer">Volunteer</option>'); // Always available option
+
+        if (totalSemesterHours >= 45) selectElement.append('<option value="1">1 credit</option>');
+        if (totalSemesterHours >= 90) selectElement.append('<option value="2">2 credits</option>');
+        if (totalSemesterHours >= 135) selectElement.append('<option value="3">3 credits</option>');
+        if (totalSemesterHours >= 180) selectElement.append('<option value="4">4 credits</option>');
+        if (totalSemesterHours >= 225) selectElement.append('<option value="5">5 credits</option>');
+        if (totalSemesterHours >= 270) selectElement.append('<option value="6">6 credits</option>');
+    }
+
+    // Initial call to set credit options
+    updateCreditOptions(0); // Start with 0 hours
+});
